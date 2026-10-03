@@ -1,0 +1,70 @@
+pipeline{
+    tools{
+        maven 'myMaven'
+    }
+    agent any
+        stages{
+            stage ("checkout code") {
+                steps{
+                    git 'https://github.com/Sravani-Meduri/dockerwebapp.git'
+                }
+            }
+            stage ("Build the code") {
+                steps{
+                    sh 'mvn clean install'
+                }
+            }
+          stage('CQA') {
+    steps {
+        withSonarQubeEnv(
+            installationName: 'mySonar',
+            credentialsId: 'sonarid'
+        ) {
+            sh '''
+                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar \
+                  -Dsonar.projectKey=myProject \
+                  -Dsonar.projectName="myProject" \
+                  -Dsonar.host.url=http://13.53.44.182:9000 \
+                  -Dsonar.token="$SONAR_AUTH_TOKEN"
+            '''
+        }
+    }
+}
+
+stage ("Quality Gates") {
+    steps {
+        waitForQualityGate abortPipeline: true
+    }
+}
+stage ("Artifacts"){
+    steps{
+        nexusArtifactUploader artifacts: [[artifactId: 'vprofile', classifier: '', file: 'target/vprofile-v2.war', type: 'war']], credentialsId: 'nexusid', groupId: 'com.visualpathit', nexusUrl: '16.192.147.175:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'myrepo', version: 'v2'
+    }
+}
+stage("create docker images") {
+    steps {
+        sh '''
+            cp target/vprofile-v2.war Docker-app/target/vprofile-v2.war
+            docker build -t app-image:v1 Docker-app/
+            docker build -t db-image:v1 Docker-db/
+        '''
+    }
+}
+stage("Trivy Scan") {
+    steps {
+        sh '''
+            trivy image app-image:v1
+            trivy image db-image:v1
+        '''
+    }
+}
+stage("Docker-Compose file"){
+    steps{
+        sh '''
+            docker-compose down
+            docker-compose up -d
+        '''
+    }
+}
+    }
+}
