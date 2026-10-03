@@ -1,10 +1,10 @@
 services:
   frontend:
-    image: sravanif5/app-image:v1
+    image: app-image:v1
     ports:
       - "1111:8080"
     deploy:
-      replicas: 3
+      replicas: 1
       resources:
         reservations:
           cpus: "1"
@@ -16,7 +16,7 @@ services:
       - devopsdb
 
   devopsdb:
-    image: sravanif5/db-image:v1
+    image: db-image:v1
     ports:
       - "3306:3306"
     deploy:
