@@ -5,6 +5,8 @@ services:
     image: sravanif5/flm-oct:db
     ports:
       - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "devopspassword"
     deploy:
       replicas: 1
     networks:
