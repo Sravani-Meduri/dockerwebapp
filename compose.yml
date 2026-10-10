@@ -1,36 +1,26 @@
+version: "3.9"
+
 services:
-  frontend:
-    image: sravanif5/app-image:v1
+  devopsdb:
+    image: sravanif5/flm-oct:db
+    ports:
+      - "3306:3306"
+    deploy:
+      replicas: 1
+    networks:
+      - mynetwork
+
+  application:
+    image: sravanif5/flm-oct:javaapp
     ports:
       - "1111:8080"
     deploy:
       replicas: 3
-      resources:
-        reservations:
-          cpus: "1"
-          memory: 500M
-        limits:
-          cpus: "2"
-          memory: 1000M
     depends_on:
       - devopsdb
+    networks:
+      - mynetwork
 
-  devopsdb:
-    image: sravanif5/db-image:v1
-    ports:
-      - "3306:3306"
-    deploy:
-      resources:
-        reservations:
-          cpus: "1"
-          memory: 500M
-        limits:
-          cpus: "2"
-          memory: 1000M
-    volumes:
-      - appdata:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: "devopspassword"
-
-volumes:
-  appdata:
+networks:
+  mynetwork:
+    driver: overlay
