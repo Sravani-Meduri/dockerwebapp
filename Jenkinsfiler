@@ -57,13 +57,23 @@ stage("Trivy Scan") {
             trivy image db-image:v1
         '''
     }
+stage("Push to registry"){
+             steps{
+                 script{
+                     withDockerRegistry(credentialsId: 'HubID') {
+                        sh 'docker tag app-image:v1 sravanif5/flm-oct:javaaapp'
+                        sh 'docker tag db-image:v1 sravanif5/flm-oct:db'
+                        sh 'docker push sravanif5/flm-oct:javaapp'
+                        sh 'docker push sravanif5/flm-oct:db'
+                     }
+                     
+                 }
+             }
+         }
 }
-stage("Docker-Compose file"){
+stage("Deploy using stack"){
     steps{
-        sh '''
-            docker-compose down
-            docker-compose up -d
-        '''
+        sh 'docker stack deploy myapp --comopose-file=compose.yml'
     }
 }
     }
