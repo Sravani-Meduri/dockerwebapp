@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   devopsdb:
-    image: sravanif5/flm-oct:db
+    image: sravanif5/flm-oct:javadb
     ports:
       - "3306:3306"
     environment:
